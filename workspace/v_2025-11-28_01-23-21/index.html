@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cube_25mm - OpenSCAD Design Dashboard</title>
+  <style>
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+      color: #e0e0e0;
+      padding: 2rem;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .header__title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    .header__subtitle {
+      color: #a0a0a0;
+      font-size: 1rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .card--full {
+      grid-column: 1 / -1;
+    }
+
+    .card__title {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #f0f0f0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .icon {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .preview {
+      background: #1a1a2e;
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .preview__image {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .code {
+      background: #1a1a2e;
+      border-radius: 12px;
+      padding: 1.5rem;
+      overflow-x: auto;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .code__content {
+      margin: 0;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #e0e0e0;
+    }
+
+    .actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn--primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn--primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn--secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #e0e0e0;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn--secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .btn--success {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+    }
+
+    .btn--success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(56, 239, 125, 0.4);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .stats--spaced {
+      margin-top: 2rem;
+    }
+
+    .stat {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1rem;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .stat__label {
+      color: #a0a0a0;
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat__value {
+      color: #f0f0f0;
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: rgba(102, 126, 234, 0.2);
+      color: #667eea;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+  
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1 class="header__title">cube_25mm</h1>
+      <p class="header__subtitle">OpenSCAD Design Dashboard • Generated November 28, 2025 at 01:23:22 AM</p>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <h2 class="card__title">
+          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+          </svg>
+          3D Preview
+        </h2>
+        <div class="preview">
+          <img src="cube_25mm.png" alt="cube_25mm preview" class="preview__image" />
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat__label">Render Quality</div>
+            <div class="stat__value">1024×768</div>
+          </div>
+          <div class="stat">
+            <div class="stat__label">Color Scheme</div>
+            <div class="stat__value">Tomorrow Night</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card__title">
+          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+          </svg>
+          Downloads
+        </h2>
+        <div class="actions">
+          <a href="cube_25mm.scad" download class="btn btn--primary">
+            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+            </svg>
+            Download .scad
+          </a>
+          <a href="cube_25mm.png" download class="btn btn--secondary">
+            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            Download Preview
+          </a>
+          
+        </div>
+        <div class="stats stats--spaced">
+          <div class="stat">
+            <div class="stat__label">Files Available</div>
+            <div class="stat__value">2 files</div>
+          </div>
+          <div class="stat">
+            <div class="stat__label">Status</div>
+            <div class="stat__value">Design Phase</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card--full">
+        <h2 class="card__title">
+          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+          </svg>
+          Source Code
+        </h2>
+        <div class="code">
+          <pre class="code__content">// 25mm cube
+cube([25, 25, 25], center = true);
+</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

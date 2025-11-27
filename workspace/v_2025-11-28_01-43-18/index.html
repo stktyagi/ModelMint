@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cube_20mm - OpenSCAD Design Dashboard</title>
+  <style>
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      background: #000000;
+      color: #ffffff;
+      padding: 0;
+      min-height: 100vh;
+      line-height: 1.4;
+      letter-spacing: -0.01em;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    .header {
+      margin-bottom: 2rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .header__title {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 0.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .header__subtitle {
+      font-size: 0.875rem;
+      color: #86868b;
+      font-weight: 400;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    @media (max-width: 1024px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .header__title {
+        font-size: 1.75rem;
+      }
+    }
+
+    .card {
+      background: #1d1d1f;
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .card--full {
+      grid-column: 1 / -1;
+    }
+
+    .card__title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+    }
+
+    .preview {
+      background: #000000;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .preview__image {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+
+    .code {
+      background: #000000;
+      border-radius: 8px;
+      padding: 1.25rem;
+      overflow-x: auto;
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .code__content {
+      margin: 0;
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      color: #f5f5f7;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.625rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 980px;
+      font-size: 0.8125rem;
+      font-weight: 400;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      letter-spacing: -0.005em;
+    }
+
+    .btn--primary {
+      background: #ffffff;
+      color: #000000;
+    }
+
+    .btn--primary:hover {
+      background: #f5f5f7;
+    }
+
+    .btn--secondary {
+      background: transparent;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn--secondary:hover {
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+
+    .stat {
+      background: #000000;
+      padding: 0.875rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .stat__label {
+      color: #86868b;
+      font-size: 0.75rem;
+      margin-bottom: 0.25rem;
+      font-weight: 400;
+    }
+
+    .stat__value {
+      color: #f5f5f7;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.625rem;
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      border-radius: 980px;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      margin-left: 0.375rem;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1 class="header__title">cube_20mm</h1>
+      <p class="header__subtitle">Generated November 28, 2025 at 01:43:18 AM</p>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <h2 class="card__title">Preview</h2>
+        <div class="preview">
+          <img src="cube_20mm.png" alt="cube_20mm preview" class="preview__image" />
+        </div>
+        <div class="stat">
+          <div class="stat__label">Resolution</div>
+          <div class="stat__value">1024×768</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card__title">Files</h2>
+        <div class="actions">
+          <a href="cube_20mm.scad" download class="btn btn--primary">Download .scad</a>
+          <a href="cube_20mm.png" download class="btn btn--secondary">Download .png</a>
+          
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat__label">Available</div>
+            <div class="stat__value">2 files</div>
+          </div>
+          <div class="stat">
+            <div class="stat__label">Status</div>
+            <div class="stat__value">Design Phase</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card--full">
+        <h2 class="card__title">Source</h2>
+        <div class="code">
+          <pre class="code__content">// Simple 20mm cube
+cube([20, 20, 20], center = true);
+</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

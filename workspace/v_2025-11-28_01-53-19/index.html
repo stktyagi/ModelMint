@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cube_20mm - OpenSCAD Design Dashboard</title>
+  <style>
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      background: #000;
+      color: #fff;
+      height: 100vh;
+      overflow: hidden;
+      line-height: 1.4;
+      letter-spacing: -0.01em;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      flex-shrink: 0;
+    }
+
+    .header__title {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .header__subtitle {
+      font-size: 0.875rem;
+      color: #86868b;
+    }
+
+    /* Uniform clickable link style */
+    .link {
+      color: #4da3ff;
+      text-decoration: none;
+      font-weight: 500;
+      transition: 0.15s ease;
+    }
+
+    .link:hover {
+      color: #82c4ff;
+      text-decoration: underline;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .card {
+      background: #1d1d1f;
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .preview {
+      background: #000;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .preview__image {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 980px;
+      font-size: 0.8125rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+
+    .btn--primary {
+      background: #fff;
+      color: #000;
+    }
+
+    .btn--secondary {
+      background: transparent;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .code {
+      background: #000;
+      border-radius: 8px;
+      padding: 1.25rem;
+      overflow: auto;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .code__content {
+      font-family: 'SF Mono', Monaco, Consolas, monospace;
+      font-size: 0.8125rem;
+      color: #f5f5f7;
+    }
+  
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1 class="header__title"><a href="cube_20mm.scad" class="link">cube_20mm</a></h1>
+      <p class="header__subtitle">Generated November 28, 2025 at 01:53:20 AM</p>
+      <p class="header__subtitle">Folder: <a href="v_2025-11-28_01-53-19" class="link">v_2025-11-28_01-53-19</a></p>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <h2 class="card__title">Preview</h2>
+        <div class="preview">
+          <img src="cube_20mm.png" alt="cube_20mm preview" class="preview__image" />
+        </div>
+        <div class="stat">
+          <div class="stat__label">Resolution</div>
+          <div class="stat__value">1024×768</div>
+        </div>
+      </div>
+
+      <div class="card card--split">
+        <div class="split-section">
+          <h2 class="card__title">Files</h2>
+          <div class="actions">
+            <a href="cube_20mm.scad" download class="btn btn--primary link">Download .scad</a>
+            <a href="cube_20mm.png" download class="btn btn--secondary link">Download .png</a>
+            
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="stat__label">Available</div>
+              <div class="stat__value">2 files</div>
+            </div>
+            <div class="stat">
+              <div class="stat__label">Status</div>
+              <div class="stat__value">Design Phase</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="split-section split-section--bottom">
+          <h2 class="card__title">Source</h2>
+          <div class="code">
+            <pre class="code__content">// Simple 20mm cube
+cube([20, 20, 20], center = true);
+</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
