@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ModelMint 3D</title>
+    <script src="https://unpkg.com/three@0.126.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/STLLoader.js"></script>
+    <script src="https://unpkg.com/three@0.126.0/examples/js/controls/OrbitControls.js"></script>
+
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background: #f4f4f9; }
+        
+        /* Header */
+        h1 { text-align: center; color: #333; margin-bottom: 20px; font-weight: 700; letter-spacing: -0.5px; }
+
+        /* Chat Container */
+        #chat-history { 
+            height: 600px; 
+            background: white; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+            overflow-y: scroll; 
+            padding: 25px; 
+            margin-bottom: 20px; 
+            scroll-behavior: smooth; 
+            border: 1px solid #eee;
+        }
+        
+        /* Messages */
+        .user-msg { 
+            background: #007aff; 
+            color: white; 
+            padding: 12px 18px; 
+            margin: 10px 0; 
+            border-radius: 20px 20px 0 20px; 
+            align-self: flex-end; 
+            float: right; 
+            clear: both; 
+            max-width: 70%; 
+            word-wrap: break-word; 
+            box-shadow: 0 2px 5px rgba(0,122,255,0.2);
+        }
+        .bot-msg { 
+            background: #f0f2f5; 
+            color: #1c1e21; 
+            padding: 12px 18px; 
+            margin: 10px 0; 
+            border-radius: 20px 20px 20px 0; 
+            float: left; 
+            clear: both; 
+            max-width: 70%; 
+            line-height: 1.5;
+        }
+        
+        /* Model Thumbnail Card */
+        .model-card { 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            display: inline-block; 
+            margin-top: 12px; 
+            position: relative; 
+            background: white; 
+            padding: 8px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            border: 1px solid #eee;
+        }
+        .model-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+        .model-card img { border-radius: 8px; max-width: 240px; display: block; background: #f9f9f9; }
+        .click-hint { font-size: 0.8em; color: #007aff; text-align: center; margin-top: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* Input Area & Controls */
+        #controls { 
+            display: flex; 
+            gap: 12px; 
+            align-items: center; 
+            background: white; 
+            padding: 12px 16px; 
+            border-radius: 24px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.06); 
+            border: 1px solid #eee;
+        }
+        input[type="text"] { flex-grow: 1; padding: 10px; border: none; outline: none; font-size: 16px; background: transparent; }
+        
+        /* Upload Button */
+        .icon-btn { 
+            cursor: pointer; 
+            padding: 10px; 
+            border-radius: 50%; 
+            background: #f0f2f5; 
+            border: none; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            width: 44px; 
+            height: 44px; 
+            transition: background 0.2s; 
+            color: #555;
+            font-size: 18px;
+        }
+        .icon-btn:hover { background: #e4e6eb; color: #000; }
+        
+        /* Image Preview (Tiny thumbnail next to text input) */
+        #preview-container { display: none; position: relative; margin-right: 5px; }
+        #preview-img { height: 44px; width: 44px; border-radius: 8px; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        #remove-img { position: absolute; top: -8px; right: -8px; background: #ff3b30; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 14px; text-align: center; cursor: pointer; line-height: 18px; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+        /* Send Button */
+        button#send-btn { 
+            padding: 12px 28px; 
+            background: #007aff; 
+            color: white; 
+            border: none; 
+            border-radius: 24px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 15px;
+            transition: all 0.2s; 
+            box-shadow: 0 4px 10px rgba(0,122,255,0.3);
+        }
+        button#send-btn:hover { background: #0066d6; transform: translateY(-1px); }
+        button:disabled { background: #b0b0b5; cursor: wait; transform: none; box-shadow: none; }
+
+        /* Quick Look Modal (Full Screen Overlay) */
+        #quick-look { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(8px); }
+        #viewer-container { width: 90%; height: 85%; background: #111; border-radius: 20px; overflow: hidden; position: relative; box-shadow: 0 30px 80px rgba(0,0,0,0.7); border: 1px solid #333; }
+        #close-btn { position: absolute; top: 25px; right: 35px; color: white; font-size: 32px; cursor: pointer; z-index: 1001; opacity: 0.7; transition: opacity 0.2s; background: rgba(0,0,0,0.5); width: 50px; height: 50px; border-radius: 50%; text-align: center; line-height: 46px; }
+        #close-btn:hover { opacity: 1; background: rgba(255,255,255,0.2); }
+        .loading-text { color: white; font-size: 1.4em; margin-bottom: 20px; font-weight: 300; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
+    </style>
+</head>
+<body>
+    <h1>ModelMint 3D</h1>
+    <div id="chat-history">
+        <div class="bot-msg">Hello! I'm your Expert 3D Engineer. Upload a sketch or describe a part, and I'll calculate the OpenSCAD geometry for you.</div>
+    </div>
+    
+    <div id="controls">
+        <input type="file" id="image-input" accept="image/*" style="display: none;" onchange="handleImageSelect()">
+        
+        <button class="icon-btn" onclick="document.getElementById('image-input').click()" title="Attach Image">
+            📎
+        </button>
+
+        <div id="preview-container">
+            <img id="preview-img" src="" />
+            <div id="remove-img" onclick="clearImage()">×</div>
+        </div>
+
+        <input type="text" id="prompt" placeholder="Ex: A helical gear with 12 teeth..." onkeypress="if(event.key==='Enter') sendMessage()">
+        <button id="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+
+    <div id="quick-look">
+        <div class="loading-text">Loading 3D Model...</div>
+        <div id="close-btn" onclick="closeViewer()">&times;</div>
+        <div id="viewer-container"></div>
+    </div>
+
+    <script>
+        // --- 1. SESSION MANAGEMENT ---
+        // Generates a unique ID so the server remembers context (e.g. "fix the teeth")
+        const sessionId = "sess_" + Date.now() + "_" + Math.random().toString(36).substr(2, 7);
+        console.log("Session ID:", sessionId);
+
+        let currentBase64Image = null;
+
+        // --- 2. IMAGE HANDLING ---
+        function handleImageSelect() {
+            const file = document.getElementById('image-input').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentBase64Image = e.target.result;
+                    document.getElementById('preview-img').src = currentBase64Image;
+                    document.getElementById('preview-container').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearImage() {
+            currentBase64Image = null;
+            document.getElementById('image-input').value = '';
+            document.getElementById('preview-container').style.display = 'none';
+        }
+
+        // --- 3. CHAT LOGIC ---
+        async function sendMessage() {
+            const input = document.getElementById('prompt');
+            const text = input.value;
+            
+            // Allow sending if there is text OR an image
+            if (!text && !currentBase64Image) return;
+
+            const history = document.getElementById('chat-history');
+            
+            // UI: Show User Message
+            let userHtml = `<div class="user-msg">`;
+            if (currentBase64Image) {
+                userHtml += `<img src="${currentBase64Image}" style="max-width:200px; display:block; margin-bottom:8px; border-radius:8px;">`;
+            }
+            userHtml += `${text || "Attached image..."}</div>`;
+            history.innerHTML += userHtml;
+
+            // UI: Loading State
+            const sendBtn = document.getElementById('send-btn');
+            const originalBtnText = sendBtn.innerText;
+            sendBtn.innerText = '●●●';
+            sendBtn.disabled = true;
+            input.placeholder = "Engineering geometry... (approx 15s)";
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        sessionId: sessionId,    
+                        message: text,
+                        image: currentBase64Image 
+                    })
+                });
+                const data = await response.json();
+
+                // UI: Render Bot Response
+                let botHtml = `<div class="bot-msg">${data.text}`;
+                
+                // If a model was created, show the thumbnail card
+                if (data.image && data.model) {
+                    botHtml += `
+                        <br>
+                        <div class="model-card" onclick="openViewer('${data.model}')">
+                            <img src="${data.image}" />
+                            <div class="click-hint">🔎 Click to 3D View</div>
+                        </div>
+                    `;
+                }
+                botHtml += `</div>`;
+                history.innerHTML += botHtml;
+
+            } catch (e) {
+                history.innerHTML += `<div class="bot-msg" style="color:#ff3b30; background:#fff0f0; border:1px solid #ffcccc;">Error: ${e.message}</div>`;
+            }
+            
+            // UI: Reset
+            input.value = '';
+            input.placeholder = "Describe a model or upload a sketch...";
+            clearImage();
+            sendBtn.innerText = originalBtnText;
+            sendBtn.disabled = false;
+            history.scrollTop = history.scrollHeight;
+        }
+
+        // --- 4. THREE.JS VIEWER LOGIC ---
+        let scene, camera, renderer, controls, currentMesh, animationId;
+
+        function init3D() {
+            const container = document.getElementById('viewer-container');
+            
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x111111); // Deep black-grey
+            
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 2000);
+            camera.position.set(100, 100, 100);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            
+            container.innerHTML = ''; 
+            container.appendChild(renderer.domElement);
+
+            // Studio Lighting Setup
+            const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambient);
+            
+            const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            mainLight.position.set(50, 100, 50);
+            scene.add(mainLight);
+            
+            const rimLight = new THREE.DirectionalLight(0x007aff, 0.8); // Blue rim light
+            rimLight.position.set(-50, 20, -50);
+            scene.add(rimLight);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+        }
+
+        function animate() {
+            animationId = requestAnimationFrame(animate);
+            if(controls) controls.update();
+            if(renderer && scene && camera) renderer.render(scene, camera);
+        }
+
+        window.openViewer = function(stlPath) {
+            document.getElementById('quick-look').style.display = 'flex';
+            if (!renderer) init3D();
+
+            const loader = new THREE.STLLoader();
+            loader.load(stlPath, function (geometry) {
+                if (currentMesh) scene.remove(currentMesh);
+
+                // Tech Material
+                const material = new THREE.MeshPhysicalMaterial({ 
+                    color: 0x007aff, // ModelMint Blue
+                    metalness: 0.2,
+                    roughness: 0.4,
+                    clearcoat: 0.8,
+                    clearcoatRoughness: 0.2
+                });
+                
+                currentMesh = new THREE.Mesh(geometry, material);
+                
+                geometry.computeBoundingBox();
+                geometry.center();
+                
+                // Fix orientation (Z-up -> Y-up)
+                currentMesh.rotation.x = -Math.PI / 2;
+                
+                scene.add(currentMesh);
+                
+                // Auto-fit Camera
+                const box = geometry.boundingBox;
+                const size = box.getSize(new THREE.Vector3()).length();
+                const center = box.getCenter(new THREE.Vector3());
+                
+                camera.position.copy(center);
+                camera.position.x += size * 1.2;
+                camera.position.y += size * 1.2;
+                camera.position.z += size * 1.2;
+                camera.lookAt(center);
+                controls.target.copy(center);
+
+                animate();
+            }, undefined, function (error) {
+                console.error(error);
+                alert("Error loading 3D model.");
+            });
+        };
+
+        window.closeViewer = function() {
+            document.getElementById('quick-look').style.display = 'none';
+            if (animationId) cancelAnimationFrame(animationId);
+        };
+        
+        window.addEventListener('resize', () => {
+            if (!camera || !renderer) return;
+            const container = document.getElementById('viewer-container');
+            if (container.clientWidth === 0) return;
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+    </script>
+</body>
+</html>
