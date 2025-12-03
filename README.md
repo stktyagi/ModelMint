@@ -75,6 +75,3 @@ Once set up, a "tools" icon will appear in your Claude chat input bar.
     You will now find `my_box.stl` in the `workspace` folder, ready for printing.
 
 ---
-## Troubleshooting
-
-Claude runs on the last cache created even if you close the window so you don't get latest changes right away. To avoid this make sure to close claude destop via task manager.
