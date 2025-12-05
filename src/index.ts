@@ -1,6 +1,8 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { z } from "zod";
 import { exec } from "child_process";
 import fs from "fs/promises";
@@ -8,20 +10,23 @@ import path from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
 import Anthropic from "@anthropic-ai/sdk";
-import { SCAD_LIBRARY } from "./scad_lib.js"; 
+import { SCAD_LIBRARY } from "./scad_lib.js";
 
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY; 
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
+  ? String(process.env.ANTHROPIC_API_KEY)
+  : "";
 
 const __filename = fileURLToPath(import.meta.url);
+
 const WORKSPACE_DIR = path.join(process.cwd(), "workspace");
 const PUBLIC_DIR = path.join(process.cwd(), "public");
-
+const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 const SESSIONS = new Map<string, any[]>();
 
 async function generateScad(filename: string, aiCode: string) {
   const safeName = filename.replace(/[^a-zA-Z0-9_-]/g, "");
   await fs.mkdir(WORKSPACE_DIR, { recursive: true });
-  
+
   const scadPath = path.join(WORKSPACE_DIR, `${safeName}.scad`);
   const pngPath = path.join(WORKSPACE_DIR, `${safeName}.png`);
   const stlPath = path.join(WORKSPACE_DIR, `${safeName}.stl`);
@@ -53,29 +58,35 @@ const server = new McpServer({ name: "modelmint", version: "2.1.0" });
 
 const createToolSchema = {
   name: "create_model",
-  description: "Generates 3D geometry. Output MUST be valid OpenSCAD code utilizing the Standard Library.",
+  description:
+    "Generates 3D geometry. Output MUST be valid OpenSCAD code utilizing the Standard Library.",
   input_schema: {
-    type: "object" as const, 
+    type: "object" as const,
     properties: {
       filename: { type: "string" },
-      code: { type: "string", description: "The OpenSCAD logic calling Standard Library modules." }
+      code: {
+        type: "string",
+        description: "The OpenSCAD logic calling Standard Library modules.",
+      },
     },
-    required: ["filename", "code"]
-  }
+    required: ["filename", "code"],
+  },
 };
 
-server.tool("create_model", createToolSchema.description, 
+server.tool(
+  "create_model",
+  createToolSchema.description,
   { filename: z.string(), code: z.string() },
   async ({ filename, code }) => {
-    return { content: [{ type: "text", text: "Processing..." }] }; 
-  }
+    return { content: [{ type: "text", text: "Processing..." }] };
+  },
 );
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: '50mb' })); 
-app.use(express.static(PUBLIC_DIR)); 
-app.use('/images', express.static(WORKSPACE_DIR)); 
+app.use(express.json({ limit: "50mb" }));
+app.use(express.static(PUBLIC_DIR));
+app.use("/images", express.static(WORKSPACE_DIR));
 
 app.post("/chat", async (req, res) => {
   const { message: userPrompt, image: userImage, sessionId } = req.body;
@@ -85,26 +96,42 @@ app.post("/chat", async (req, res) => {
   let history = SESSIONS.get(sessionId)!;
 
   if (history.length > 0) {
-      const lastMsg = history[history.length - 1];
-      if (lastMsg.role === "assistant" && lastMsg.content.some((c:any) => c.type === "tool_use")) {
-          const toolUse = lastMsg.content.find((c:any) => c.type === "tool_use");
-          console.log("⚠️ Repairing broken conversation history...");
-          history.push({
-              role: "user",
-              content: [{
-                  type: "tool_result",
-                  tool_use_id: toolUse.id,
-                  content: "Error: Previous generation was interrupted. Please retry."
-              }]
-          });
-      }
+    const lastMsg = history[history.length - 1];
+    if (
+      lastMsg.role === "assistant" &&
+      lastMsg.content.some((c: any) => c.type === "tool_use")
+    ) {
+      const toolUse = lastMsg.content.find((c: any) => c.type === "tool_use");
+      console.log("⚠️ Repairing broken conversation history...");
+      history.push({
+        role: "user",
+        content: [
+          {
+            type: "tool_result",
+            tool_use_id: toolUse.id,
+            content:
+              "Error: Previous generation was interrupted. Please retry.",
+          },
+        ],
+      });
+    }
   }
 
   try {
     const contentPayload: any[] = [];
     if (userImage) {
-         const matches = userImage.match(/^data:((?:image\/(?:png|jpeg|webp|gif)));base64,(.*)$/);
-         if(matches) contentPayload.push({ type: "image", source: { type: "base64", media_type: matches[1] as any, data: matches[2] }});
+      const matches = userImage.match(
+        /^data:((?:image\/(?:png|jpeg|webp|gif)));base64,(.*)$/,
+      );
+      if (matches)
+        contentPayload.push({
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: matches[1] as any,
+            data: matches[2],
+          },
+        });
     }
     if (userPrompt) contentPayload.push({ type: "text", text: userPrompt });
 
@@ -130,58 +157,67 @@ You do NOT write raw geometry math. You use the provided **STANDARD LIBRARY**.
       max_tokens: 4096,
       system: SYSTEM_PROMPT,
       messages: history,
-      tools: [createToolSchema]
+      tools: [createToolSchema],
     });
 
     history.push({ role: "assistant", content: msg.content });
-    
+
     SESSIONS.set(sessionId, history);
 
-    const toolUse = msg.content.find(c => c.type === "tool_use");
+    const toolUse = msg.content.find((c) => c.type === "tool_use");
 
     if (toolUse) {
       const { filename, code } = toolUse.input as any;
-      
+
       try {
         const { safeName } = await generateScad(filename, code);
-        
+
         history.push({
-            role: "user",
-            content: [{
-                type: "tool_result",
-                tool_use_id: toolUse.id,
-                content: `Success. Generated ${safeName}.png`
-            }]
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: toolUse.id,
+              content: `Success. Generated ${safeName}.png`,
+            },
+          ],
         });
-        
-        res.json({ 
-            text: `I've updated the model for "${filename}".`,
-            image: `/images/${safeName}.png`, 
-            model: `/images/${safeName}.stl`
+
+        res.json({
+          text: `I've updated the model for "${filename}".`,
+          image: `/images/${safeName}.png`,
+          model: `/images/${safeName}.stl`,
         });
       } catch (err) {
         history.push({
-            role: "user",
-            content: [{
-                type: "tool_result",
-                tool_use_id: toolUse.id,
-                content: `Error generating model: ${err}`
-            }]
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: toolUse.id,
+              content: `Error generating model: ${err}`,
+            },
+          ],
         });
-        
-        res.status(500).json({ text: "Generation failed, but I saved the error log. Try again?" });
-      }
-      
-      SESSIONS.set(sessionId, history);
-      
-    } else {
-      res.json({ text: msg.content.find(c => c.type === "text")?.text || "Error", image: null });
-    }
 
+        res.status(500).json({
+          text: "Generation failed, but I saved the error log. Try again?",
+        });
+      }
+
+      SESSIONS.set(sessionId, history);
+    } else {
+      res.json({
+        text: msg.content.find((c) => c.type === "text")?.text || "Error",
+        image: null,
+      });
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ text: "API Error: " + (error as Error).message });
   }
 });
 
-app.listen(3000, () => console.log("Engine running on port 3000"));
+app.listen(PORT, () =>
+  console.log(`Engine running on port ${process.env.PORT}`),
+);
