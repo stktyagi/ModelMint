@@ -1,6 +1,6 @@
 # ModelMint
 
-This project is a Model Context Protocol (MCP) server that acts as a bridge between the **Claude Desktop** application and the **OpenSCAD** 3D modeling software. It allows you to design, refine, and export 3D-printable models using simple, natural language conversations.
+This project acts as a Model Context Protocol (MCP) server linking **Claude Desktop** with **OpenSCAD**. It facilitates the design, refinement, and export of 3D-printable models via natural language.
 
 Instead of writing code, you just describe the object you want to build, and this server handles the file creation, previews, and final export for you.
 
