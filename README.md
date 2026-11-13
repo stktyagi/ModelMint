@@ -75,3 +75,16 @@ Once set up, a "tools" icon will appear in your Claude chat input bar.
     You will now find `my_box.stl` in the `workspace` folder, ready for printing.
 
 ---
+---
+## Deploy on EC2 (Docker + Caddy)
+1.  Launch an instance, open ports **80** and **443** (and 22) in its security group, and point a DNS A record for your domain at it.
+2.  Install Docker with the compose plugin, then clone this repo.
+3.  Configure:
+    ```bash
+    cp .env.example .env   # set DOMAIN and ANTHROPIC_API_KEY
+    ```
+4.  Start:
+    ```bash
+    docker compose up -d --build
+    ```
+Caddy fetches the TLS certificate automatically. `/chat` is unauthenticated and spends your API key, so enable the `basic_auth` block in `Caddyfile` before sharing the URL.
